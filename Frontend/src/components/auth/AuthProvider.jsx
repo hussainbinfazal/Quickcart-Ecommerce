@@ -7,6 +7,7 @@ const AuthProvider = ({ children }) => {
   const dispatch = useDispatch();
 
   const { isAuthenticated, checking } = useSelector((state) => state.user);
+  
   useEffect(() => {
     dispatch(checkAuth()).unwrap();
   }, [dispatch]);
