@@ -48,9 +48,9 @@ const LikedProduct = () => {
       await dispatch(removeFromWishlist(product._id)).unwrap();
       await dispatch(fetchWishlist()).unwrap();
     } else {
-       dispatch(addToGuestCart(product));
-       dispatch(removeFromGuestWishlist(product));
-       dispatch(fetchGuestWishlist());
+      dispatch(addToGuestCart(product));
+      dispatch(removeFromGuestWishlist(product));
+      dispatch(fetchGuestWishlist());
     }
   };
   const handleRemoveFromLiked = async (product) => {
@@ -77,8 +77,7 @@ const LikedProduct = () => {
     };
     syncWishlist();
   }, [dispatch, isAuthenticated]);
-  useEffect(() => {
-  }, []);
+  useEffect(() => {}, []);
   return (
     <div className="w-full min-h-screen flex justify-start items-center flex-col bg-gray-50 py-8">
       <NavigationHeader />
@@ -126,10 +125,11 @@ const LikedProduct = () => {
                     <div className="relative h-48">
                       <img
                         src={
-                          product.productImage ||
-                          `${import.meta.env.VITE_API_URL}/uploads/products/${
-                            product.productImage
-                          }`
+                          product?.productImage?.startsWith("http")
+                            ? product.productImage
+                            : `${
+                                import.meta.env.VITE_API_URL
+                              }/uploads/productImages/${product?.productImage}`
                         }
                         alt={product.name}
                         className="w-full h-full object-cover"
@@ -137,7 +137,8 @@ const LikedProduct = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleRemoveFromLiked(product)}}
+                          handleRemoveFromLiked(product);
+                        }}
                         className="absolute top-2 right-2 p-2 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors cursor-pointer"
                       >
                         <RiDeleteBin6Line className="text-red-500" />
