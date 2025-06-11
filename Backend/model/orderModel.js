@@ -10,6 +10,8 @@ const orderSchema = new mongoose.Schema({
     qty: Number,
     image: String,
     price: Number,
+    colour: String,
+    size: String,
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
@@ -24,15 +26,15 @@ const orderSchema = new mongoose.Schema({
       apartment: {
         type: String,
       },
-      building: {
-        type: String,
-      },
-      floor: {
-        type: String,
-      },
-      landmark: {
-        type: String,
-      },
+      // building: {
+      //   type: String,
+      // },
+      // floor: {
+      //   type: String,
+      // },
+      // landmark: {
+      //   type: String,
+      // },
       city: {
         type: String,
       },

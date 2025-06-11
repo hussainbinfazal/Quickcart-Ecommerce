@@ -4,11 +4,10 @@ const mongoose = require('mongoose');
 const Cart = require('../model/cartModel');
 const Product = require('../model/productModel');
 const Razorpay = require('razorpay');
+const User = require('../model/userModel');
+const crypto = require('crypto');
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+
 
 const getOrders = async (req, res) => {
     try {
@@ -65,20 +64,21 @@ const updateOrderToPaid = async (req, res) => {
     }
 }
 const createOrder = async (req, res) => {
-    console.log('Creating order for user:', req.user._id);
-    try {
-        // const { orderItems, shippingAddress, paymentMethod, taxPrice, shippingPrice, totalPrice } = req.body;
-        const { orderData } = req.body;
-        const { orderItems, shippingAddress, paymentMethod, phone, email, name, cartId } = orderData;
 
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+        return res.status(500).send('Razorpay credentials not configured');
+    }
+    const razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+    try {
+
+        const { orderItems, shippingAddress, paymentMethod, phone, email, name, cartId } = req.body;
         const userOfOrder = await User.findById(req.user._id).populate('name email');
 
-        if (!orderData) {
-            return res.status(400).json({ message: 'No order data provided' });
-        }
-
         const cartOfUser = await Cart.findOne({ _id: cartId });
-        const amount = cartOfUser.totalPrice;
+        const amount = cartOfUser.total;
         const shortReceipt = `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
         const razorpayOptions = {
@@ -111,7 +111,7 @@ const createOrder = async (req, res) => {
             res.status(400).json({ message: 'No order items' });
         } else {
             const order = new Order({
-                user: req.user._id,
+                user: userOfOrder._id,
                 orderItems: cartOfUser.cartItems.map(item => ({
                     name: item.name,
                     qty: item.qty,
@@ -144,18 +144,23 @@ const createOrder = async (req, res) => {
 
                     isPaid: false,
                     isDelivered: false,
-                    totalPrice
                 },
+                totalPrice: cartOfUser.total,
                 paymentMethod: 'Razorpay',
                 razorpayOrderId: razorpayOrder.id,
                 status: 'Pending',
                 total: cartOfUser.total
             });
             const createdOrder = await order.save();
-            res.status(201).json(createdOrder);
+            return res.status(201).json({
+                order: createdOrder,
+                razorpayOrderId: razorpayOrder.id,
+                success: true,
+                message: 'pending Order created successfully',
+                amount: amount,
+            });
         }
     } catch (error) {
-        console.log('Error in createOrder controller:', error);
         return res.status(500).json({ message: error.message });
     }
 }
@@ -163,7 +168,8 @@ const createOrder = async (req, res) => {
 
 const verifyOrder = async (req, res) => {
     try {
-        const { orderId, paymentId, signature, } = await req.body;
+        const { orderId, paymentId, signature, cartId } = req.body;
+        // console.log('Verifying payment for order:', orderId, 'with paymentId:', paymentId, 'and signature:', signature);
         const userOfOrder = await User.findById(req.user._id).populate('name email');
 
         const body = orderId + '|' + paymentId;
@@ -174,10 +180,10 @@ const verifyOrder = async (req, res) => {
 
         const isAuthentic = expectedSignature === signature;
         if (!isAuthentic) {
-            return res.json({
+            return res.status(400).json({
                 success: false,
                 message: 'Invalid payment signature'
-            }, { status: 400 });
+            });
         }
         const order = await Order.findOne({ razorpayOrderId: orderId });
         order.isPaid = true;
@@ -189,15 +195,20 @@ const verifyOrder = async (req, res) => {
             email_address: userOfOrder.email
 
         };
-        order.status = 'completed';
+        order.status = 'Completed';
+
         await order.save();
-        return res.json({
+        if (cartId) {
+            const deleteUserCart = await Cart.findByIdAndDelete(cartId)
+        };
+
+        return res.status(201).json({
             success: true,
             message: 'Payment verified successfully'
-        }, { status: 200 });
+        });
 
     } catch (error) {
-        console.log('This is the error in the verfiy payment controller ', error);
+        // console.log('This is the error in the verfiy payment controller ', error);
         return res.status(500).json({ message: error.message });
     }
 }

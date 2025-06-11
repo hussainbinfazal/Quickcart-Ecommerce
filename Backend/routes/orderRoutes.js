@@ -21,7 +21,7 @@ const {
 
 
 router.post('/', protect, createOrder);
-router.post('/verify', protect, updateOrderToPaid);
+router.post('/verify', protect, verifyOrder);
 router.get('/all', protect, admin, getOrders);
 router.get('/myorders', protect, getMyOrders);
 router.get('/order/:orderId', protect, getOrderById);
