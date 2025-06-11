@@ -18,7 +18,9 @@ import { FcGoogle } from "react-icons/fc";
 const Registerpage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error, isAuthenticated } = useSelector((state) => state.user);
+  const { loading, error, isAuthenticated } = useSelector(
+    (state) => state.user
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,6 +33,9 @@ const Registerpage = () => {
   const { signUp, setActive } = useSignUp();
   const { session } = useSession();
   const { user } = useUser();
+  if (isAuthenticated) {
+    navigate("/"); // or wherever you want to redirect
+  }
   const handleRegister = async (e) => {
     const userData = {
       name: name,
@@ -119,9 +124,6 @@ const Registerpage = () => {
     }
   }, [user]);
 
-  if (isAuthenticated) {
-    navigate("/"); // or wherever you want to redirect
-  }
   return (
     <div className="w-full min-h-screen flex flex-col items-center justify-start lg:justify-start xl:justify-start 2xl:justify-start lg:pr-5 xl:pr-5 2xl:pr-5 overflow-auto pb-20 bg-white">
       <NavigationHeader />

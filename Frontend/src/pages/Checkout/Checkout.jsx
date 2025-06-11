@@ -6,7 +6,11 @@ import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCartItems } from "../../redux/slices/cartSlice";
 import { createOrder } from "../../redux/slices/orderSlice";
+
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { toast } from "react-toastify";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Checkout = () => {
   const pathnames = useLocation().pathname.split("/").filter(Boolean);
@@ -21,6 +25,8 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const { cart, cartItems } = useSelector((state) => state.cart);
+  const { user } = useSelector((state) => state.user);
+  const navigate = useNavigate();
 
   const stripe = useStripe();
   const elements = useElements();
@@ -36,15 +42,6 @@ const Checkout = () => {
     pinCode: "",
   });
 
-  const orderData = {
-    shippindAddress: address,
-    phone: phone,
-    email: email,
-    name: name,
-    paymentMethod: paymentMethod,
-    orderItems: cartItems,
-    isPaid: false,
-  };
   // Email Validator //
   const [emailError, setEmailError] = useState("");
   const isValidEmail = (email) => {
@@ -134,11 +131,148 @@ const Checkout = () => {
             await dispatch(createOrder(paidOrder));
           }
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     }
   };
 
+  const verifyPayment = async (paymentData) => {
+    try {
+      const response = await axios.post("/api/orders/verify", {
+        orderId: paymentData.razorpay_order_id,
+        paymentId: paymentData.razorpay_payment_id,
+        signature: paymentData.razorpay_signature,
+        
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Payment verification failed");
+      }
+
+      toast;
+      return response.data;
+    } catch (error) {
+      console.error("Error verifying payment:", error);
+      // Convert axios error to a more readable format
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        throw new Error(
+          error.response.data.message ||
+            `Payment verification failed with status ${error.response.status}`
+        );
+      } else if (error.request) {
+        // The request was made but no response was received
+        throw new Error("No response received from verification server");
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        throw new Error(
+          error.message || "Error setting up verification request"
+        );
+      }
+    }
+  };
+  const handleBuyNow = async () => {
+    try {
+      // Check if user is logged in
+      if (!isAuthenticated) {
+        toast.error("Please login first");
+        return router.push("/login");
+      }
+
+      // Show loading state
+      toast.loading("Processing your purchase...");
+
+      // Create an order object with course details
+      const orderData = {
+        shippindAddress: address,
+        phone: phone,
+        email: email,
+        name: name,
+        paymentMethod: 'Razorpay',
+        orderItems: cartItems,
+        isPaid: false,
+        cartId: cart?._id,
+      };
+
+      // Call API to create order and process payment
+      const response = await axios.post(`/api/orders`, orderData);
+      const data = response?.data;
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: cart.total * 100, // Amount in paisa
+        currency: "INR",
+        name: "QuickCart",
+        description: `Purchase: ${cart?.cartItems[0]?.product?.name}`,
+        order_id: data.razorpayOrderId,
+        handler: async function (response) {
+          try {
+            // Verify payment on backend
+            toast.loading("Verifying payment...");
+            const verification = await verifyPayment(response);
+
+            if (verification.success) {
+              toast.success(
+                "Payment successful! You now have access to the course."
+              );
+              setIsPaid(true);
+              // Redirect to course page or dashboard
+              toast.dismiss();
+              navigate('/')
+            } else {
+              alert("Payment verification failed. Please contact support.");
+            }
+          } catch (error) {
+            alert("Payment verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: user.phone || "",
+        },
+        theme: {
+          color: "#3399cc",
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+          },
+        },
+      };
+
+      const razor = new window.Razorpay(options);
+      razor.open();
+      toast.dismiss();
+
+      if (response.data.success) {
+        toast.success("Course purchased successfully!");
+
+        // Refresh user data to update enrolled courses
+        await fetchUser();
+
+        // Redirect to course view page
+      } else {
+        toast.error(response.data.message || "Failed to process payment");
+      }
+    } catch (error) {
+      console.log("Error during payment:", error);
+      toast.dismiss();
+      toast.error(error.response?.data?.message || "Something went wrong");
+      alert("Failed to initiate payment. Please try again.");
+    }
+  };
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
   const fetchCartDetails = async () => {
     await dispatch(fetchCartItems());
   };
@@ -384,11 +518,13 @@ const Checkout = () => {
                       <div className="w-[4/5] h-full flex justify-start items-center gap-6 px-2">
                         <img
                           src={
-                            item?.product?.productImage
+                            item?.product?.productImage?.startsWith("http")
                               ? item?.product.productImage
-                                ? item?.product?.productImage
-                                : item?.product?.images[0]
-                              : "https://imgs.search.brave.com/YNSVceFUkYj35I_b5uLIfQ8auy2VIw2GJEXXD4Q7tms/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS1waG90by9j/b21wdXRlci1jdXJ2/eS1tb25pdG9yLWRp/Z2l0YWwtZGV2aWNl/XzUzODc2LTk3MzI0/LmpwZz9zZW10PWFp/c19oeWJyaWQ"
+                              : `${
+                                  import.meta.env.VITE_API_URL
+                                }/uploads/productImages/${
+                                  item?.product?.productImage
+                                }`
                           }
                           alt=""
                           className="w-[50px] h-[50px] object-contain"
@@ -475,7 +611,7 @@ const Checkout = () => {
                           <label className="text-lg font-medium mb-1">
                             Card Details
                           </label>
-                          <div className="border border-gray-300 rounded-md p-2 bg-white" >
+                          <div className="border border-gray-300 rounded-md p-2 bg-white">
                             <CardElement className="bg-white p-4 rounded-md border border-gray-300" />
                           </div>
                         </div>
@@ -528,7 +664,7 @@ const Checkout = () => {
                   <div className="h-[70px] w-full py-2 mt-2 px-2 flex justify-center items-center">
                     <button
                       className="w-3/5 h-full bg-red-600/85 text-white rounded-md text-lg hover:scale-105 transition-all duration-200"
-                      onClick={handlePlaceOrder}
+                      onClick={handleBuyNow}
                     >
                       Place order
                     </button>

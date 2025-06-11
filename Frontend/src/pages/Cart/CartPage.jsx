@@ -188,7 +188,13 @@ const CartPage = () => {
               >
                 <div className="w-1/4 sm:w-1/4 md:w-1/4 lg:w-1/4 h-full flex items-center gap-2 md:gap-4 lg:gap:4 xl:gap-4 2xl:gap-4 relative sm:pl-3 md:pl-3 lg:pl-3 xl:pl-3 2xl:pl-3">
                   <img
-                    src={item?.product?.productImage || item?.productImage}
+                    src={
+                          item?.product?.productImage?.startsWith("http")
+                            ? item?.product.productImage
+                            : `${
+                                import.meta.env.VITE_API_URL
+                              }/uploads/productImages/${item?.product?.productImage}`
+                        }
                     alt={item?.name}
                     className="w-[50px] h-[50px] object-cover relative"
                   />
