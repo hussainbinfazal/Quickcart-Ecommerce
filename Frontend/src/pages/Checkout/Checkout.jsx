@@ -5,12 +5,13 @@ import { RiVisaLine } from "react-icons/ri";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCartItems } from "../../redux/slices/cartSlice";
-import { createOrder } from "../../redux/slices/orderSlice";
+import { createOrder, verifyOrder } from "../../redux/slices/orderSlice";
 
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { axiosInstance } from "@/lib/axios";
 
 const Checkout = () => {
   const pathnames = useLocation().pathname.split("/").filter(Boolean);
@@ -46,7 +47,7 @@ const Checkout = () => {
   const [emailError, setEmailError] = useState("");
   const isValidEmail = (email) => {
     // Basic email regex
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+₹/.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
   const handleEmailChange = (e) => {
     const value = e.target.value.trim();
@@ -54,7 +55,6 @@ const Checkout = () => {
 
     if (value && !isValidEmail(value)) {
       setEmailError("Invalid email format");
-      alert("Invalid email format");
     } else {
       setEmailError("");
     }
@@ -64,13 +64,13 @@ const Checkout = () => {
     const value = e.target.value.trim();
 
     // Allow only digits or an empty string
-    if (/^\d*₹/.test(value)) {
+    if (/^\d*$/.test(value)) {
       setPhone(value);
     } else {
       alert("Phone number must contain digits only");
     }
   };
-  const handlePostalCodeChange = (e) => {
+  const handlePostalCodeChange = (e) => { //Optional //
     const value = e.target.value.trim();
 
     // Only update if it's digits or empty
@@ -83,79 +83,30 @@ const Checkout = () => {
 
   const { isAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  const handlePlaceOrder = async (orderData) => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-    if (paymentMethod === "cash") {
-      await dispatch(createOrder(orderData));
-      return;
-    }
-
-    if (paymentMethod === "card") {
-      // 1. Get clientSecret from backend
-      try {
-        const {
-          data: { clientSecret },
-        } = await axios.post("/api/payment/create-intent", {
-          amount: cart?.total,
-        });
-
-        // 2. Confirm payment with Stripe
-        const cardElement = elements.getElement(CardElement);
-        const result = await stripe.confirmCardPayment(clientSecret, {
-          payment_method: {
-            card: cardElement,
-            billing_details: {
-              name,
-              email,
-            },
-          },
-        });
-
-        if (result.error) {
-        } else {
-          if (result.paymentIntent.status === "succeeded") {
-            const paidOrder = {
-              ...orderData,
-              isPaid: true,
-              paidAt: new Date().toISOString(),
-              paymentResult: {
-                id: result.paymentIntent.id,
-                status: result.paymentIntent.status,
-                update_time: new Date().toISOString(),
-                email_address: email,
-              },
-            };
-            await dispatch(createOrder(paidOrder));
-          }
-        }
-      } catch (error) {}
-    }
-  };
+  
 
   const verifyPayment = async (paymentData) => {
     try {
-      const response = await axios.post("/api/orders/verify", {
-        orderId: paymentData.razorpay_order_id,
-        paymentId: paymentData.razorpay_payment_id,
-        signature: paymentData.razorpay_signature,
-        
-      });
+      const response = await dispatch(
+        verifyOrder({
+          orderId: paymentData.razorpay_order_id,
+          paymentId: paymentData.razorpay_payment_id,
+          signature: paymentData.razorpay_signature,
+          cartId: cart?._id,
+        })
+      );
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || "Payment verification failed");
+      
+      if (!response.payload || response.payload.success !== true) {
+        throw new Error("Payment verification failed");
       }
 
-      toast;
-      return response.data;
+      return response.payload;
     } catch (error) {
-      console.error("Error verifying payment:", error);
+      // console.error("Error verifying payment:", error);
       // Convert axios error to a more readable format
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
+        
         throw new Error(
           error.response.data.message ||
             `Payment verification failed with status ${error.response.status}`
@@ -182,24 +133,25 @@ const Checkout = () => {
       // Show loading state
       toast.loading("Processing your purchase...");
 
+      
       // Create an order object with course details
       const orderData = {
-        shippindAddress: address,
+        shippingAddress: address,
         phone: phone,
         email: email,
         name: name,
-        paymentMethod: 'Razorpay',
+        paymentMethod: "Razorpay",
         orderItems: cartItems,
         isPaid: false,
         cartId: cart?._id,
       };
 
       // Call API to create order and process payment
-      const response = await axios.post(`/api/orders`, orderData);
-      const data = response?.data;
-
+      const response = await dispatch(createOrder(orderData));
+      const data = response.payload;
+      
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: cart.total * 100, // Amount in paisa
         currency: "INR",
         name: "QuickCart",
@@ -209,20 +161,22 @@ const Checkout = () => {
           try {
             // Verify payment on backend
             toast.loading("Verifying payment...");
+            
             const verification = await verifyPayment(response);
 
-            if (verification.success) {
+            if (verification.success == true) {
               toast.success(
-                "Payment successful! You now have access to the course."
+                "Payment successful! You now track your order in your order history."
               );
-              setIsPaid(true);
               // Redirect to course page or dashboard
               toast.dismiss();
-              navigate('/')
+              navigate("/orders");
             } else {
               alert("Payment verification failed. Please contact support.");
             }
           } catch (error) {
+            // console.error("Payment verification error:", error);
+            toast.dismiss();
             alert("Payment verification failed. Please contact support.");
           }
         },
@@ -236,7 +190,7 @@ const Checkout = () => {
         },
         modal: {
           ondismiss: function () {
-            setLoading(false);
+            toast.dismiss();
           },
         },
       };
@@ -245,18 +199,16 @@ const Checkout = () => {
       razor.open();
       toast.dismiss();
 
-      if (response.data.success) {
-        toast.success("Course purchased successfully!");
-
-        // Refresh user data to update enrolled courses
-        await fetchUser();
+      if (response.status === 201) {
+        toast.success(" order created successfully!");
+        navigate("/orders");
 
         // Redirect to course view page
       } else {
-        toast.error(response.data.message || "Failed to process payment");
+        toast.error(response || "Failed to process payment");
       }
     } catch (error) {
-      console.log("Error during payment:", error);
+      // console.log("Error during payment:", error);
       toast.dismiss();
       toast.error(error.response?.data?.message || "Something went wrong");
       alert("Failed to initiate payment. Please try again.");
@@ -410,7 +362,7 @@ const Checkout = () => {
                     htmlFor="First Name"
                     className="h-[20px] w-full pl-1 mb-2"
                   >
-                    Town/Citye<span className="text-red-500 pl-2">*</span>
+                    Town/City<span className="text-red-500 pl-2">*</span>
                   </label>
                   <input
                     value={address.city}

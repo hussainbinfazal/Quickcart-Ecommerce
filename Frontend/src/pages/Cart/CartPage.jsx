@@ -74,11 +74,17 @@ const CartPage = () => {
   };
   useEffect(() => {
     const fetchCart = async () => {
+      console.log("Fetching cart items...");
       if (isAuthenticated) {
         try {
           const data = await dispatch(fetchCartItems()).unwrap();
-          await dispatch(mergeGuestCart()).unwrap();
+          console.log("Cart items fetched:", data);
+          
+          const mergedCart = await dispatch(mergeGuestCart()).unwrap();
+          console.log("Merged cart items:", mergedCart);
+          dispatch(clearGuestCart());
         } catch (error) {
+          console.log("Error fetching cart items:", error);
           
         }
       } else {

@@ -10,7 +10,7 @@ const initialState = {
 };
 
 export const createOrder = createAsyncThunk(
-    'user/register',
+    '/orders/create',
     async (orderData, { rejectWithValue }) => {
         try {
             const config = {
@@ -20,7 +20,7 @@ export const createOrder = createAsyncThunk(
             };
 
             const { data } = await axiosInstance.post(
-                '/users/register',
+                '/orders',
                 orderData,
                 config
             );
@@ -33,7 +33,28 @@ export const createOrder = createAsyncThunk(
         }
     }
 );
-export const deleteOrder = createAsyncThunk('order/deleteOrder', async (orderId) => {
+export const verifyOrder = createAsyncThunk('orders/verifyOrder', async (orderData, { rejectWithValue }) => {
+    try {
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            },
+        };
+        const response = await axiosInstance.post('/orders/verify', orderData, config);
+        return response.data;
+
+    } catch (error) {
+        console.log('error in the verify order reducer in orderSlice', error);
+        return rejectWithValue(
+            error.response?.data?.message || 'Order verification failed'
+        );
+    }
+
+
+
+})
+export const deleteOrder = createAsyncThunk('orders/deleteOrder', async (orderId) => {
     try {
         const config = {
             headers: {
@@ -57,13 +78,13 @@ const orderSlice = createSlice({
         },
         resetDeleteFlag: (state) => {
             state.isDeleted = false;
-          },
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(createOrder.fulfilled, (state, action) => {
             state.loading = false;
             state.success = true;
-            state.user = action.payload;
+            state.order = action.payload;
             state.isShown = true;
         });
         builder.addCase(createOrder.rejected, (state, action) => {

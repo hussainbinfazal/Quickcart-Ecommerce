@@ -127,7 +127,8 @@ export const mergeGuestCart = createAsyncThunk(
             return rejectWithValue('Guest cart is empty.');
         }
         try {
-            const response = await axiosInstance.post('/cart/merge', { guestCart });
+            console.log('Merging guest cart:', guestCart);
+            const response = await axiosInstance.post('/cart/merge', { guestCart }, config);
             toast.success('Guest cart merged successfully!');
             return response.data.cart; // assuming your backend sends updated cart
         } catch (error) {
