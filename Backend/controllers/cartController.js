@@ -13,7 +13,7 @@ const addToCart = async (req, res) => {
         if (!product) return res.status(404).json({ message: "Product not found" });
 
         // Find or create cart for the user
-        let cart = await Cart.findOne({ user: userId });
+        let cart = await Cart.findOne({ user: userId }).populate('cartItems.product');
 
         // Construct new cart item
         const newItem = {
@@ -22,8 +22,8 @@ const addToCart = async (req, res) => {
             qty: quantity,
             image: product.productImage,
             price: product.price,
-            colour:colour || product.colours[0],
-            size:size || product.sizes[0],
+            colour: colour || product.colours[0],
+            size: size || product.sizes[0],
 
         };
 
@@ -50,7 +50,10 @@ const addToCart = async (req, res) => {
                 cart.cartItems.push(newItem);
             }
         }
-        cart.subTotal = cart.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+        cart.subTotal = cart.cartItems.reduce((acc, item) => {
+            const discount = item.product.discount ? (item.price * (item.product.discount / 100)) : 0;
+            return acc + (item.price - discount) * item.qty;
+        }, 0);
         cart.tax = parseFloat((cart.subTotal * 0.1).toFixed(2)); // example: 10% tax
         cart.shipping = cart.subTotal > 100 ? 0 : 10; // free shipping over ₹100
         const discountAmount = cart.coupon?.discount
@@ -191,19 +194,19 @@ const updateProductQuantity = async (req, res) => {
         const { productId } = req.params;
         const { qty } = req.body;
         const userId = req.user._id;
-        const cart = await Cart.findOne({ user: userId });
+        const cart = await Cart.findOne({ user: userId }).populate('cartItems.product');
         if (!cart) return res.status(404).json({ message: "Cart not found" });
 
         const itemIndex = cart.cartItems.findIndex(item =>
-            item.product.toString() === productId
+            item.product._id.toString() === productId
         );
         if (itemIndex === -1) return res.status(404).json({ message: "Item not found in cart" });
 
         cart.cartItems[itemIndex].qty = qty;
-        cart.subTotal = cart.cartItems.reduce(
-            (acc, item) => acc + item.price * item.qty,
-            0
-        );
+        cart.subTotal = cart.cartItems.reduce((acc, item) => {
+            const discount = item.product.discount ? (item.price * (item.product.discount / 100)) : 0;
+            return acc + (item.price - discount) * item.qty;
+        }, 0);
         cart.tax = parseFloat((cart.subTotal * 0.1).toFixed(2));
         cart.shipping = cart.subTotal > 100 ? 0 : 10;
         const discountAmount = cart.coupon?.discount
