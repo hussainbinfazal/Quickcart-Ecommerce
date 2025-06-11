@@ -3,6 +3,13 @@ const { faker } = require('@faker-js/faker');
 const mongoose = require('mongoose');
 const Cart = require('../model/cartModel');
 const Product = require('../model/productModel');
+const Razorpay = require('razorpay');
+
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
 const getOrders = async (req, res) => {
     try {
         const orders = await Order.find({})
@@ -58,17 +65,29 @@ const updateOrderToPaid = async (req, res) => {
     }
 }
 const createOrder = async (req, res) => {
+    console.log('Creating order for user:', req.user._id);
     try {
         // const { orderItems, shippingAddress, paymentMethod, taxPrice, shippingPrice, totalPrice } = req.body;
+        const { orderData } = req.body;
+        const { orderItems, shippingAddress, paymentMethod, phone, email, name, cartId } = orderData;
 
         const userOfOrder = await User.findById(req.user._id).populate('name email');
-        const { orderData } = req.body;
 
         if (!orderData) {
             return res.status(400).json({ message: 'No order data provided' });
         }
 
-        const { orderItems, shippingAddress, paymentMethod, phone, email, name } = orderData;
+        const cartOfUser = await Cart.findOne({ _id: cartId });
+        const amount = cartOfUser.totalPrice;
+        const shortReceipt = `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+
+        const razorpayOptions = {
+            amount: amount * 100, // Convert to paisa
+            currency: 'INR',
+            receipt: shortReceipt
+        };
+
+        const razorpayOrder = await razorpay.orders.create(razorpayOptions);
 
         if (!orderItems || !shippingAddress || !paymentMethod || !phone || !email || !name) {
             return res.status(400).json({ message: 'name,phone,email,,shippingAddress,paymentMethod are required' });
@@ -84,7 +103,7 @@ const createOrder = async (req, res) => {
             country,
             pinCode } = shippingAddress;
 
-        const cartOfUser = await Cart.findOne({ user: req.user._id });
+
         if (!cartOfUser) {
             return res.status(404).json({ message: 'Cart not found' });
         }
@@ -108,11 +127,11 @@ const createOrder = async (req, res) => {
                         city: city,
                         state: state,
                         country: country,
-                        street:street || null,
-                        apartment :apartment || null ,
-                        building:building || null,
-                        floor:floor || null,
-                        landmark:landmark || null,
+                        street: street || null,
+                        apartment: apartment || null,
+                        building: building || null,
+                        floor: floor || null,
+                        landmark: landmark || null,
                         pincode: pinCode,
 
 
@@ -122,10 +141,13 @@ const createOrder = async (req, res) => {
                     phone: phone,
                     email: email,
                     paymentMethod,
+
                     isPaid: false,
                     isDelivered: false,
                     totalPrice
                 },
+                paymentMethod: 'Razorpay',
+                razorpayOrderId: razorpayOrder.id,
                 status: 'Pending',
                 total: cartOfUser.total
             });
@@ -133,7 +155,50 @@ const createOrder = async (req, res) => {
             res.status(201).json(createdOrder);
         }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.log('Error in createOrder controller:', error);
+        return res.status(500).json({ message: error.message });
+    }
+}
+
+
+const verifyOrder = async (req, res) => {
+    try {
+        const { orderId, paymentId, signature, } = await req.body;
+        const userOfOrder = await User.findById(req.user._id).populate('name email');
+
+        const body = orderId + '|' + paymentId;
+        const expectedSignature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+            .update(body.toString())
+            .digest('hex');
+
+        const isAuthentic = expectedSignature === signature;
+        if (!isAuthentic) {
+            return res.json({
+                success: false,
+                message: 'Invalid payment signature'
+            }, { status: 400 });
+        }
+        const order = await Order.findOne({ razorpayOrderId: orderId });
+        order.isPaid = true;
+        order.paidAt = new Date();
+        order.paymentResult = {
+            id: paymentId,
+            status: 'Completed',
+            update_time: new Date().toISOString(),
+            email_address: userOfOrder.email
+
+        };
+        order.status = 'completed';
+        await order.save();
+        return res.json({
+            success: true,
+            message: 'Payment verified successfully'
+        }, { status: 200 });
+
+    } catch (error) {
+        console.log('This is the error in the verfiy payment controller ', error);
+        return res.status(500).json({ message: error.message });
     }
 }
 
@@ -336,4 +401,4 @@ const updateOrderStatus = async (req, res) => {
     }
 }
 
-module.exports = { getOrders, getOrderById, createOrder, updateOrderToPaid, updateOrderToDelivered, deleteOrder, getMyOrders, generateFakeOrders, markOrderAsPaid, updateOrderStatus,cancelOrder,exchangeOrder };
+module.exports = { getOrders, getOrderById, createOrder, updateOrderToPaid, updateOrderToDelivered, deleteOrder, getMyOrders, generateFakeOrders, markOrderAsPaid, updateOrderStatus, cancelOrder, exchangeOrder, verifyOrder };

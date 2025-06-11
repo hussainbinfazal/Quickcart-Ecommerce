@@ -18,25 +18,34 @@ const orderSchema = new mongoose.Schema({
   }],
   shippingAddress: {
     address: {
-      street:{
-        type: String,},
-      apartment:{
-        type: String,},
-      building:{
-        type: String,},
-      floor:{
-        type: String,},
-      landmark:{
-        type: String,},
-      city:{
-        type: String,},
-      state:{
-        type: String,},
-      country:{
-        type: String,},
-      pincode:{
-        type: String,},
-  
+      street: {
+        type: String,
+      },
+      apartment: {
+        type: String,
+      },
+      building: {
+        type: String,
+      },
+      floor: {
+        type: String,
+      },
+      landmark: {
+        type: String,
+      },
+      city: {
+        type: String,
+      },
+      state: {
+        type: String,
+      },
+      country: {
+        type: String,
+      },
+      pincode: {
+        type: String,
+      },
+
     },
     phone: String,
     email: String,
@@ -50,13 +59,19 @@ const orderSchema = new mongoose.Schema({
     email_address: String
   },
   totalPrice: Number,
-  isPaid: {type: Boolean, default: false},
+  paymentMethod: String,
+  razorpayOrderId: {
+    type: String,
+    required: true
+  },
+  
+  isPaid: { type: Boolean, default: false },
   paidAt: Date,
-  isDelivered: {type:Boolean, default: false},
+  isDelivered: { type: Boolean, default: false },
   deliveredAt: Date,
   status: {
     type: String,
-    enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled','Returned', 'Refunded','Completed'],
+    enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned', 'Refunded', 'Completed'],
     default: 'Pending'
   }
 }, {

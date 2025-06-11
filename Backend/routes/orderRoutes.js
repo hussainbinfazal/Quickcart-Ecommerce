@@ -14,12 +14,14 @@ const {
     markOrderAsPaid,
     updateOrderStatus,
     cancelOrder,
-    exchangeOrder
+    exchangeOrder,
+    verifyOrder
     
 } = require('../controllers/orderController');
 
 
 router.post('/', protect, createOrder);
+router.post('/verify', protect, updateOrderToPaid);
 router.get('/all', protect, admin, getOrders);
 router.get('/myorders', protect, getMyOrders);
 router.get('/order/:orderId', protect, getOrderById);
