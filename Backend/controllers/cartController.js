@@ -266,8 +266,10 @@ const mergeGuestCart = async (req, res) => {
         }
 
         // Recalculate totals
-        cart.subTotal = cart.cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
-        cart.tax = parseFloat((cart.subTotal * 0.1).toFixed(2));
+        cart.subTotal = cart.cartItems.reduce((acc, item) => {
+            const discount = item.product.discount ? (item.price * (item.product.discount / 100)) : 0;
+            return acc + (item.price - discount) * item.qty;
+        }, 0); cart.tax = parseFloat((cart.subTotal * 0.1).toFixed(2));
         cart.shipping = cart.subTotal > 100 ? 0 : 10;
         const discount = cart.coupon?.discount ? (cart.coupon.discount / 100) * cart.subTotal : 0;
         cart.total = parseFloat((cart.subTotal + cart.tax + cart.shipping - discount).toFixed(2));

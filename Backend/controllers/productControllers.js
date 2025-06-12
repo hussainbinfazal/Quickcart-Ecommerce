@@ -278,6 +278,7 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+// Function to generate fake product data for testing //
 const generateFakeProduct = () => {
   const categories = ["Men", "Women", "Kids", "Electronics", "Home"];
   const brands = ["Nike", "Adidas", "Samsung", "Sony", "Apple"];

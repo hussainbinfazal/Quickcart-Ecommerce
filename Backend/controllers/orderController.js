@@ -338,6 +338,9 @@ const exchangeOrder = async (req, res) => {
     }
 };
 
+
+// // Function to generate fake orders for testing //
+
 const generateFakeOrders = async (req, res) => {
     try {
         const orders = [];

@@ -3,6 +3,7 @@ const generateToken = require('../utils/generateToken');
 const bcrypt = require('bcrypt');
 const { faker } = require('@faker-js/faker')
 const fs = require('fs');
+const Support = require('../model/supportModel');
 const registerUser = async (req, res) => {
 
 
@@ -205,7 +206,31 @@ const deleteUserByAdmin = async (req, res) => {
     }
 };
 
-// to be removed before deployement //
+const contactSupport = async (req, res) => {
+    console.log('Contact Support called');
+    try{
+
+        const userId = req.user._id ;
+
+        const { message } = req.body;
+        if (!message || message.trim() === '') {
+            return res.status(400).json({ message: 'Message cannot be empty' });
+        }
+        const user = await User.findById(userId);
+        const support = new Support({
+            user: userId,
+            message: message,
+            status: 'open',
+        });
+        await support.save();
+        return res.status(200).json({ message: 'Message sent successfully' });
+    }catch(error){
+        console.error('Error in contactSupport:', error);
+        return res.status(500).json({ message: 'An error occurred while sending the message' });
+    }
+}
+
+// Generate random users for testing purposes //
 const generateRandomUsers = async (req, res) => {
     try {
         const numberOfUsers = req.query.count || 10; // Default to 10 users if count not specified
@@ -242,4 +267,4 @@ const generateRandomUsers = async (req, res) => {
 };
 
 
-module.exports = { registerUser, getUsers, getUserById, deleteUser, updateUser, loginUser, logoutUser, userAuthentication, allUsers, generateRandomUsers, updateUserToAdmin, deleteUserByAdmin };
+module.exports = { registerUser, getUsers, getUserById, deleteUser, updateUser, loginUser, logoutUser, userAuthentication, allUsers, generateRandomUsers, updateUserToAdmin, deleteUserByAdmin, contactSupport };

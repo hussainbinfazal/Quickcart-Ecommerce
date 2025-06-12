@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const {protect} = require('../middlewares/isAuthenticated');
 const upload = require('../uploads/userprofile/userProfile');
-const {registerUser , getUsers, getUserById, deleteUser, updateUser, loginUser , logoutUser,userAuthentication ,allUsers,generateRandomUsers ,updateUserToAdmin ,deleteUserByAdmin} = require('../controllers/userControllers')
+const {registerUser , getUsers, getUserById, deleteUser, updateUser, loginUser , logoutUser,userAuthentication ,allUsers,generateRandomUsers ,updateUserToAdmin ,deleteUserByAdmin,contactSupport} = require('../controllers/userControllers')
 
 
 router.post('/register',upload.single('profileImage'),registerUser);
@@ -19,4 +19,6 @@ router.get("/all",protect,allUsers)
 router.put('/update/:userId', protect, updateUserToAdmin);
 router.delete('/delete/:userId', protect, deleteUserByAdmin);
 router.post('/generate-random', generateRandomUsers);
+router.post('/contactUs',protect, contactSupport);
+
 module.exports = router;
