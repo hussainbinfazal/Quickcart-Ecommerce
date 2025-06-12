@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 
 const initialState = {
     order: null,
+    orders: [],
     isShown: false,
     isShown: false
 };
@@ -69,6 +70,22 @@ export const deleteOrder = createAsyncThunk('orders/deleteOrder', async (orderId
         throw error;
     }
 });
+export const getMyOrders = createAsyncThunk('orders/getMyOrders', async (userId, { rejectWithValue }) => {
+    try {
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+        };
+        const response = await axiosInstance.get(`/orders/myorders`, config);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(
+            error.response?.data?.message || 'Failed to fetch orders'
+        );
+    }
+});
 const orderSlice = createSlice({
     name: 'order',
     initialState,
@@ -91,7 +108,23 @@ const orderSlice = createSlice({
             state.loading = false;
             state.error = action.payload;
         });
+        builder.addCase(getMyOrders.fulfilled, (state, action) => {
+            state.loading = false;
+            state.orders = action.payload;
+            state.isShown = true;
+        });
+        builder.addCase(getMyOrders.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        });
+        builder.addCase(getMyOrders.pending, (state, action) => {
+            state.loading = true;
+            state.isShown = false;
+            state.error = action.payload;
+        });
+        
     }
+
 });
 
 export const { clearError, resetDeleteFlag } = orderSlice.actions;

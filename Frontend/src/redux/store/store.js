@@ -14,7 +14,7 @@ import cartReducer from '../slices/cartSlice';
 import wishlistReducer from '../slices/wishlistSlice';
 import couponReducer from '../adminSlices/adminCouponSlice';
 import categoryReducer from '../slices/categorySlice';
-// Create the Redux store
+// Create the Redux store here
 const store = configureStore({
     reducer: {
         user: userReducer,

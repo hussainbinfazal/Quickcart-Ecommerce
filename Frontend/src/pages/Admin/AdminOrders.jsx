@@ -281,8 +281,9 @@ const AdminOrders = ({
                         <img
                           src={
                             order.user?.profileImage
-                              ? // yaha par "import.meta.env.VITE_API_URL + user.profileImage" ye add karna hai deployement se pehle
-                                order.user?.profileImage
+                              ? // Add "import.meta.env.VITE_API_URL + user.profileImage" before the url to preview the image
+                                order.user?.profileImage.startsWith("http")
+                              ? order.user?.profileImage : `${import.meta.env.VITE_API_URL}/uploads/userProfileImages/${order.user?.profileImage}`
                               : defaultImage
                           }
                           className="w-[50px] h-[50px] rounded-full"

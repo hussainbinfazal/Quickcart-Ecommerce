@@ -33,8 +33,7 @@ import AdminOrders from "./pages/Admin/AdminOrders";
 import AdminUser from "./pages/Admin/AdminUser";
 import AdminShop from "./pages/Admin/AdminShop";
 import LikedProduct from "./pages/LikedProducts/LikedProduct";
-// import PrivacyPolicy from "./pages/Legal/PrivacyPolicy";
-// import CookiePolicy   from "./pages/Legal/CookiePolicy";
+
 import TermsAndConditions from "./pages/Legal/TermsAndConditions";
 import ShippingPolicy from "./pages/Legal/ShippingPolicy";
 import RefundPolicy from "./pages/Legal/RefundPolicy";
@@ -57,8 +56,7 @@ import AuthWatcher from "./middlewares/auth/authWatcher";
 import Search from "./pages/searchPage/Search";
 import AllProducts from "./pages/product/AllProducts";
 import ScrollLoader from "./components/layout/ScrollLoader";
-// import UI from "./UI";
-// import UI2 from "./UI2";
+
 import { ClerkProvider } from "@clerk/clerk-react";
 function App() {
   const [count, setCount] = useState(0);

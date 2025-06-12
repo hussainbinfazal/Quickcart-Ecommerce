@@ -235,8 +235,8 @@ const AdminDashboard = ({
                         <img
                           src={
                             user.profileImage
-                              ? // yaha par "import.meta.env.VITE_API_URL + user.profileImage" ye add karna hai deployement se pehle
-                                user.profileImage || import.meta.env.VITE_API_URL + user.profileImage
+                              ? // Add"import.meta.env.VITE_API_URL + user.profileImage" to handle the case where the image is not a full URL
+                                user.profileImage || `${import.meta.env.VITE_API_URL}/uploads/userprofile/${user.profileImage}`
                               : defaultImage
                           }
                           className="w-[50px] h-[50px] rounded-full"

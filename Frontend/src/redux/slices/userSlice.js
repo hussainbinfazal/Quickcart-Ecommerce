@@ -252,14 +252,7 @@ export const contactUs = createAsyncThunk(
     }
   }
 );
-// export const fetchLoginUser = createAsyncThunk('/user/fetchLoginUser', async ({rejectWithValue}) => {
-//   try {
-//     const response = await axiosInstance.get('/users/user');
-//     return response.data;
-//   } catch (error) {
 
-//   }
-// })
 
 // User slice
 const userSlice = createSlice({
@@ -434,10 +427,10 @@ const userSlice = createSlice({
   },
 });
 
-// Export actions
+
 export const { logout, clearError, resetDeleteFlag } = userSlice.actions;
 
-// Export selectors
+
 export const selectUser = (state) => state.user.user;
 export const selectIsAuthenticated = (state) => state.user.isAuthenticated;
 export const selectLoading = (state) => state.user.loading;
@@ -445,5 +438,4 @@ export const selectError = (state) => state.user.error;
 export const selectToken = (state) => state.user.token;
 export const selectAdmin = (state) => state.user.admin;
 
-// Export reducer
 export default userSlice.reducer;

@@ -1,135 +1,16 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { FiPackage, FiCheckCircle, FiTruck, FiClock } from "react-icons/fi";
 import { FcCancel } from "react-icons/fc";
 import { PiKeyReturnDuotone } from "react-icons/pi";
 import { Link } from "react-router";
-const Orders = () => {
-  // Sample orders data
-  const orders = [
-    {
-      id: "#ORD-2023-001",
-      date: "2023-05-15",
-      status: "Delivered",
-      items: [
-        {
-          id: 1,
-          name: "Wireless Headphones",
-          price: 99.99,
-          quantity: 1,
-          image:
-            "https://m.media-amazon.com/images/I/61vihvwHdBL._AC_SY200_.jpg",
-        },
-        {
-          id: 2,
-          name: "Phone Case",
-          price: 19.99,
-          quantity: 2,
-          image:
-            "https://m.media-amazon.com/images/I/61vihvwHdBL._AC_SY200_.jpg",
-        },
-      ],
-      total: 139.97,
-      tracking: "UPS-123456789",
-      deliveryDate: "2023-05-20",
-    },
-    {
-      id: "#ORD-2023-002",
-      date: "2023-06-10",
-      status: "Shipped",
-      items: [
-        {
-          id: 3,
-          name: "Smart Watch",
-          price: 199.99,
-          quantity: 1,
-          image:
-            "https://m.media-amazon.com/images/I/61vihvwHdBL._AC_SY200_.jpg",
-        },
-      ],
-      total: 199.99,
-      tracking: "FEDEX-987654321",
-      deliveryDate: "2023-06-18",
-    },
-    {
-      id: "#ORD-2023-003",
-      date: "2023-07-05",
-      status: "Processing",
-      items: [
-        {
-          id: 4,
-          name: "Running Shoes",
-          price: 89.99,
-          quantity: 1,
-          image:
-            "https://m.media-amazon.com/images/I/61vihvwHdBL._AC_SY200_.jpg",
-        },
-        {
-          id: 5,
-          name: "Sports Socks",
-          price: 12.99,
-          quantity: 3,
-          image:
-            "https://m.media-amazon.com/images/I/61vihvwHdBL._AC_SY200_.jpg",
-        },
-      ],
-      total: 128.96,
-      tracking: null,
-      deliveryDate: null,
-    },
-    {
-      id: "#ORD-2023-003",
-      date: "2023-07-05",
-      status: "Cancelled",
-      items: [
-        {
-          id: 4,
-          name: "Running Shoes",
-          price: 89.99,
-          quantity: 1,
-          image:
-            "https://m.media-amazon.com/images/I/61vihvwHdBL._AC_SY200_.jpg",
-        },
-        {
-          id: 5,
-          name: "Sports Socks",
-          price: 12.99,
-          quantity: 3,
-          image:
-            "https://m.media-amazon.com/images/I/61vihvwHdBL._AC_SY200_.jpg",
-        },
-      ],
-      total: 128.96,
-      tracking: null,
-      deliveryDate: null,
-    },
+import { useState, useEffect } from "react";
+import { getMyOrders } from "@/redux/slices/orderSlice";
+import { toast } from "react-toastify";
 
-    {
-      id: "#ORD-2023-003",
-      date: "2023-07-05",
-      status: "Returned",
-      items: [
-        {
-          id: 4,
-          name: "Running Shoes",
-          price: 89.99,
-          quantity: 1,
-          image:
-            "https://m.media-amazon.com/images/I/61vihvwHdBL._AC_SY200_.jpg",
-        },
-        {
-          id: 5,
-          name: "Sports Socks",
-          price: 12.99,
-          quantity: 3,
-          image:
-            "https://m.media-amazon.com/images/I/61vihvwHdBL._AC_SY200_.jpg",
-        },
-      ],
-      total: 128.96,
-      tracking: null,
-      deliveryDate: null,
-    },
-  ];
+import { useDispatch, useSelector } from "react-redux";
+const Orders = () => {
+  const dispatch = useDispatch();
+  const { orders, loading, error } = useSelector((state) => state.order);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -148,6 +29,18 @@ const Orders = () => {
     }
   };
 
+  const fetchMyOrders = useCallback(async () => {
+    try {
+      const response = await dispatch(getMyOrders());
+      console.log("Fetched orders:", response);
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+      toast.error("Failed to fetch orders. Please try again later.");
+    }
+  },[dispatch]);
+  useEffect(() => {
+    fetchMyOrders();
+  }, [fetchMyOrders]);
   return (
     <div className="w-full h-full overflow-auto flex justify-center items-start pt-8 pb-20">
       <div className="w-full max-w-6xl px-4">
@@ -165,8 +58,8 @@ const Orders = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {orders.map((order) => (
-              <div key={order.id} className="border rounded-lg overflow-hidden">
+            {(orders || [] ).map((order) => (
+              <div key={order._id} className="border rounded-lg overflow-hidden">
                 {/* Order header */}
                 <div className="bg-gray-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-b">
                   <div className="flex items-center space-x-4">
@@ -182,17 +75,17 @@ const Orders = () => {
                     </div>
                   </div>
                   <div className="mt-2 sm:mt-0 text-sm font-medium">
-                    Total: ₹{order.total.toFixed(2)}
+                    Total: ₹{order.total?.toFixed(2)}
                   </div>
                 </div>
 
                 {/* Order items */}
                 <div className="divide-y">
-                  {order.items.map((item) => (
+                  {order.orderItems.map((item) => (
                     <div key={item.id} className="p-4 flex">
                       <div className="flex-shrink-0 h-20 w-20 bg-gray-200 rounded-md overflow-hidden">
                         <img
-                          src={item.image}
+                          src={item.image.startsWith("http") ? item.image : `${import.meta.env.VITE_API_URL}/uploads/productImages/${item.image}`}
                           alt={item.name}
                           className="h-full w-full object-cover"
                         />
@@ -207,7 +100,7 @@ const Orders = () => {
                         </p>
                       </div>
                       <div className="ml-4">
-                        <Link to={`/product/${item.id}`}>
+                        <Link to={`/product/${item.product._id}`}>
                           <button className="text-sm font-medium text-red-600 hover:text-red-500">
                             Buy Again
                           </button>
@@ -238,10 +131,10 @@ const Orders = () => {
                     )}
                   </div>
                   <div className="mt-2 sm:mt-0 space-x-4">
-                    <button className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
+                    <button className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50" onClick={() => toast.info("Order details coming soon!")}>
                       View Details
                     </button>
-                    <button className="px-3 py-1 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">
+                    <button className="px-3 py-1 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700" onClick={() => toast.info("Tracking functionality coming soon!")}>
                       Track Package
                     </button>
                   </div>
