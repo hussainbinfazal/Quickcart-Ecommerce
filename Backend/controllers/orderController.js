@@ -234,6 +234,7 @@ const updateOrderToDelivered = async (req, res) => {
 
 const getMyOrders = async (req, res) => {
     try {
+        console.log('Fetching orders for user:', req.user._id);
         const orders = await Order.find({ user: req.user._id })
             .populate('orderItems.product', 'name image')
             .sort({ createdAt: -1 });

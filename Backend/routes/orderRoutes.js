@@ -26,7 +26,6 @@ router.get('/all', protect, admin, getOrders);
 router.get('/myorders', protect, getMyOrders);
 router.get('/order/:orderId', protect, getOrderById);
 router.delete('/:orderId', protect, admin, deleteOrder);      
-// router.put('/:id/pay', protect, updateOrderToPaid);
 router.put('/status/:orderId',protect,admin,updateOrderStatus);
 router.put('/:orderId/deliver', protect, admin, updateOrderToDelivered);
 router.post('/generate-fake-orders', protect, admin, generateFakeOrders);

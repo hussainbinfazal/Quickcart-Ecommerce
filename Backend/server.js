@@ -14,7 +14,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes'); // Assuming you have this route set up
 const couponRoutes = require('./routes/couponRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
+
 const categoryRoutes = require('./routes/categoryRoutes');
 const cookieParser = require('cookie-parser');
 const { requestController } = require('./lib/arcjet');
@@ -43,7 +43,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/coupons', couponRoutes);
-app.use('/api/payment', paymentRoutes);
+
 app.use('/api/categories', categoryRoutes);
 app.get("/", requestController);
 
