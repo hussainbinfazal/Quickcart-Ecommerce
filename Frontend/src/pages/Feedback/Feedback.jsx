@@ -1,15 +1,26 @@
 import React from "react";
 import { useState, useRef, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { IoCallOutline } from "react-icons/io5";
 import { MdOutlineEmail } from "react-icons/md";
+import { contactUs } from "@/redux/slices/userSlice";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 const Feedback = () => {
   const pathnames = useLocation().pathname.split("/").filter(Boolean);
   const [changePassword, setChangePassword] = useState(false);
   const passwordInputRef = useRef(null);
   const [isClick, setIsClick] = useState(false);
 
+  const [message, setMessage] = useState("");
+  const[name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [address, setAddress] = useState("");
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch();
   const toggleChangePasswordButton = () => {
     setChangePassword(!changePassword);
     if (changePassword) {
@@ -20,6 +31,24 @@ const Feedback = () => {
     }
   };
 
+  const handleSubmit = async(e) => {
+    console.log("function called")
+    e.preventDefault();
+    try{
+
+      const response = await dispatch(contactUs(message ));
+      toast.success("Message sent successfully!");
+      setMessage("");
+      setName("");
+      setEmail("");
+      setLastName("");
+      setAddress("");
+      navigate("/");
+    }catch (error) {
+      console.error("Error submitting form:", error); 
+      return toast.error("Failed to send message. Please try again.");
+    }
+  }
   useEffect(() => {}, [changePassword]);
   return (
     <div className="w-full  h-full overflow-auto flex justify-center items-start pt-8">
@@ -114,6 +143,8 @@ const Feedback = () => {
                       First Name
                     </label>
                     <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       type="text"
                       className="w-full h-[calc(100%-30px)]  bg-[#d2cdcd] focus:bg-[#F5F5F5] outline-none pl-2 text-xl rounded-md"
                     />
@@ -123,6 +154,9 @@ const Feedback = () => {
                       Last Name
                     </label>
                     <input
+
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
                       type="text"
                       className="w-full h-[calc(100%-30px)]  bg-[#d2cdcd] focus:bg-[#F5F5F5] outline-none pl-2 text-xl rounded-md"
                     />
@@ -134,6 +168,8 @@ const Feedback = () => {
                       Email
                     </label>
                     <input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       type="email"
                       className="w-full h-[calc(100%-30px)]  bg-[#d2cdcd] focus:bg-[#F5F5F5] outline-none pl-2 text-xl rounded-md"
                     />
@@ -143,6 +179,9 @@ const Feedback = () => {
                       Address
                     </label>
                     <input
+
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
                       type="text"
                       className="w-full h-[calc(100%-30px)]  bg-[#d2cdcd] focus:bg-[#F5F5F5] outline-none pl-2 text-xl rounded-md"
                     />
@@ -157,6 +196,8 @@ const Feedback = () => {
                     </label>
                     <textarea
                       ref={passwordInputRef}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
                       className={`w-full h-[calc(100%-30px)]  bg-[#d2cdcd] outline-none pl-2 text-xl rounded-md focus:bg-[#F5F5F5]  ${
                         changePassword ? "" : "focus:bg-[#F5F5F5]"
                       }`}
@@ -181,7 +222,7 @@ const Feedback = () => {
                     </label>
 
                     <span className="justify-center flex h-full cursor-pointer w-[250px]">
-                      <button className="w-full h-full flex justify-center items-center bg-red-500/80 text-white rounded-md hover:scale-105 transition-all duration-200 cursor-pointer">
+                      <button className="w-full h-full flex justify-center items-center bg-red-500/80 text-white rounded-md hover:scale-105 transition-all duration-200 cursor-pointer" onClick={handleSubmit}>
                         Save Changes
                       </button>
                     </span>

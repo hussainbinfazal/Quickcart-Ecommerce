@@ -227,6 +227,31 @@ export const resetPassword = createAsyncThunk(
     }
   }
 );
+export const contactUs = createAsyncThunk(
+  'user/contactUs',
+  async (message, { rejectWithValue }) => {
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      };
+
+      const { data } = await axiosInstance.post(
+        '/users/contactUs',
+        {message},
+        config
+      );
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Password reset failed'
+      );
+    }
+  }
+);
 // export const fetchLoginUser = createAsyncThunk('/user/fetchLoginUser', async ({rejectWithValue}) => {
 //   try {
 //     const response = await axiosInstance.get('/users/user');
@@ -371,6 +396,20 @@ const userSlice = createSlice({
         state.error = action.payload;
       })
 
+      // Contact Us
+      .addCase(contactUs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(contactUs.fulfilled, (state) => {
+        state.loading = false;
+        state.isShown = true;
+
+      })
+      .addCase(contactUs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
 
       // Check auth
       .addCase(checkAuth.pending, (state, action) => {

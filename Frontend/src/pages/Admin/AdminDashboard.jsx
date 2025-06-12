@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
-import React from "react";
+import React, { useCallback } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { useState, useEffect } from "react";
 import NavigationHeader from "../../components/layout/NavigatioHeader";
@@ -87,7 +87,7 @@ const AdminDashboard = ({ isSidebarOpen, toggleSidebar }) => {
     sevenDaysAgo.setDate(today.getDate() - 7);
 
     return orderDate >= sevenDaysAgo && orderDate <= today;
-  }).length;
+  });
 
   const formatIndianCurrency = (num) => {
     if (num >= 10000000) return (num / 10000000).toFixed(2) + " Cr";
@@ -111,20 +111,18 @@ const AdminDashboard = ({ isSidebarOpen, toggleSidebar }) => {
 
   const totalProducts = (products || []).length;
 
-  const fetchDetails = async () => {
+  const fetchDetails = useCallback(async () => {
     try {
       const response = await dispatch(getProducts()).unwrap();
       const response2 = await dispatch(fetchOrders()).unwrap();
-
-
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error("Error fetching details:", error);
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     fetchDetails();
-  }, [dispatch]);
+  }, [fetchDetails]);
 
   return (
     <div className="adminpage w-full flex-1 max-h-screen flex flex-col justify-start bg-white items-center pr-5 ">
@@ -188,9 +186,14 @@ const AdminDashboard = ({ isSidebarOpen, toggleSidebar }) => {
               </div>
               {/* we need to map orders here */}
 
-              {(totalOrdersLast7Days || orders || []).map((order) => {
+              {(totalOrdersLast7Days || []).map((order) => {
                 return (
-                  <div className="w-full flex  justify-start items-center border-b-1 border-[#e4e7e8ef] hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/admin/orders/order/${order?._id}`)}>
+                  <div
+                    className="w-full flex  justify-start items-center border-b-1 border-[#e4e7e8ef] hover:bg-gray-50 cursor-pointer"
+                    onClick={() =>
+                      navigate(`/admin/orders/order/${order?._id}`)
+                    }
+                  >
                     <div className="w-[40%] h-[60px] text-sm flex justify-start items-center gap-2 px-2  font-semibold p-3">
                       {order?._id}{" "}
                     </div>

@@ -8,6 +8,8 @@ import { FaArrowsRotate } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
 import { FiEye, FiHeart, FiEyeOff } from "react-icons/fi";
 import { FaHeart } from "react-icons/fa";
+import { FiShoppingCart } from "react-icons/fi";
+import { BsCartCheckFill } from "react-icons/bs";
 
 import { getProducts } from "../../redux/slices/productSlice";
 import {
@@ -40,13 +42,14 @@ const Product = () => {
   const [product, setProduct] = useState({});
   const [quantity, setQuantity] = useState(1);
   const [releatedProucts, setReleatedProducts] = useState([]);
+  const [isAdded, setIsAdded] = useState(false);
   const { cartItems, guestCartItems, guestCartSubtotal, cart, loading } =
     useSelector((state) => state.cart);
   const { products } = useSelector((state) => state.product);
 
   const maxQuantity = product?.countInStock || 10;
-const [colour , setColour] = useState('')
-const [size , setSize] = useState('')
+  const [colour, setColour] = useState("");
+  const [size, setSize] = useState("");
   const incrementQuantity = () => {
     setQuantity((prev) => (prev < maxQuantity ? prev + 1 : prev));
   };
@@ -55,7 +58,9 @@ const [size , setSize] = useState('')
     setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
   };
 
-  const releatedProducts = products.filter((p) => p.category === product.category);
+  const releatedProducts = products.filter(
+    (p) => p.category === product.category
+  );
   console.log(releatedProducts);
   const getProductById = async (productId) => {
     const fetchedProducts = await dispatch(getProducts()).unwrap();
@@ -80,39 +85,50 @@ const [size , setSize] = useState('')
         alert("Please select both color and size before adding to cart.");
         return;
       }
-      if(quantity === 0) {
-        window.alert('Please select quantity')
-        return
+      if (quantity === 0) {
+        window.alert("Please select quantity");
+        return;
       }
-      await dispatch(addToCart({productId:product._id, quantity, colour:colour, size:size})).unwrap();
+      await dispatch(
+        addToCart({
+          productId: product._id,
+          quantity,
+          colour: colour,
+          size: size,
+        })
+      ).unwrap();
       await dispatch(fetchCartItems()).unwrap();
       setQuantity(1);
-      setColour('');
-      setSize('');
+      setColour("");
+      setSize("");
     } else {
       dispatch(addToGuestCart(productId, quantity, colour, size));
       dispatch(fetchGuestCart()).unwrap();
       dispatch(fetchWishlist()).unwrap();
       setQuantity(1);
-      setColour('');
-      setSize('');
+      setColour("");
+      setSize("");
     }
   };
-  const handleRemoveFromCart = async (productId, quantity , colour, size) => {
+  const handleRemoveFromCart = async (productId, quantity, colour, size) => {
     if (isAuthenticated) {
-      
-      
-      await dispatch(removeFromCart({productId:product._id,quantity:quantity,colour:colour,size:size})).unwrap();
+      await dispatch(
+        removeFromCart({
+          productId: product._id,
+          quantity: quantity,
+          colour: colour,
+          size: size,
+        })
+      ).unwrap();
       await dispatch(fetchWishlist()).unwrap();
       await dispatch(fetchCartItems()).unwrap();
-      
     } else {
       dispatch(removeFromGuestCart(productId));
       dispatch(fetchGuestCart()).unwrap();
       dispatch(fetchWishlist()).unwrap();
       setQuantity(1);
-      setColour('');
-      setSize('');
+      setColour("");
+      setSize("");
     }
   };
   const handleLike = async (product) => {
@@ -176,6 +192,20 @@ const [size , setSize] = useState('')
       guestWishlist.some((item) => item?.product?._id === product._id));
 
   const navigate = useNavigate();
+
+  // payment process if user buys the product directly from the page
+  
+
+  useEffect(() => {
+    if (
+      cartItems.some(
+        (item) => item.product._id === productId || item.product === productId
+      )
+    ) {
+      setIsAdded(true);
+    }
+    console.log("This is the cartitems", cartItems);
+  }, [productId, product, cartItems]);
   return (
     <div className="w-full h-full flex flex-col items-center justify-start lg:justify-center overflow-auto pb-20">
       <div className="lg:w-6/7 w-full lg:h-[800px] h-[1500px] px-4">
@@ -202,12 +232,12 @@ const [size , setSize] = useState('')
             <div className="w-[70%] h-full flex items-center justify-center mx-4 my-3 bg-[#F5F5F5] rounded-md">
               <img
                 src={
-                mainImage?.startsWith("http")
-                  ? mainImage
-                  : `${import.meta.env.VITE_API_URL}/uploads/productImages/${
-                      mainImage
-                    }`
-              }
+                  mainImage?.startsWith("http")
+                    ? mainImage
+                    : `${
+                        import.meta.env.VITE_API_URL
+                      }/uploads/productImages/${mainImage}`
+                }
                 alt=""
                 className="w-4/5 h-4/5 object-cover"
               />
@@ -265,12 +295,14 @@ const [size , setSize] = useState('')
                     {product?.colours?.map((color, i) => (
                       <div
                         key={i}
-                        className={`w-[20px] h-[20px] rounded-full hover:border-2 ${colour.toLowerCase() === color.toLowerCase() ? "border-1 border-gray-400" : "border-1 border-transparent"} cursor-pointer`}
+                        className={`w-[20px] h-[20px] rounded-full hover:border-2 ${
+                          colour.toLowerCase() === color.toLowerCase()
+                            ? "border-1 border-gray-400"
+                            : "border-1 border-transparent"
+                        } cursor-pointer`}
                         style={{ backgroundColor: color.toLowerCase() }}
                         onClick={(e) => setColour(color.toLowerCase())}
-                      >
-                        
-                      </div>
+                      ></div>
                     ))}
                   </span>
                 </span>
@@ -282,8 +314,12 @@ const [size , setSize] = useState('')
                     {product?.sizes?.map((s, i) => (
                       <div
                         key={i}
-                        className={`w-[30px] h-[30px] rounded-md border-1 px-1 text-sm hover:bg-red-700 hover:text-white cursor-pointer flex justify-center items-center ${s === size ? "bg-red-700 text-white" : ""} outline-none` }
-                        onClick={() =>{ setSize(s)}}
+                        className={`w-[30px] h-[30px] rounded-md border-1 px-1 text-sm hover:bg-red-700 hover:text-white cursor-pointer flex justify-center items-center ${
+                          s === size ? "bg-red-700 text-white" : ""
+                        } outline-none`}
+                        onClick={() => {
+                          setSize(s);
+                        }}
                       >
                         {s}
                       </div>
@@ -314,14 +350,18 @@ const [size , setSize] = useState('')
                     {alreadyAdded ? (
                       <button
                         className="hover:scale-105 transition-all bg-red-500 text-white h-[50px] w-full lg:w-[200px] rounded-md "
-                        onClick={() => handleRemoveFromCart(product, quantity, colour, size)}
+                        onClick={() =>
+                          handleRemoveFromCart(product, quantity, colour, size)
+                        }
                       >
                         Remove From Cart
                       </button>
                     ) : (
                       <button
                         className="hover:scale-105 transition-all bg-red-500 text-white h-[50px] w-full lg:w-[200px] rounded-md "
-                        onClick={() => handleAddToCart(product, quantity, colour, size)}
+                        onClick={() =>
+                          handleAddToCart(product, quantity, colour, size)
+                        }
                       >
                         Buy Now
                       </button>
@@ -344,6 +384,33 @@ const [size , setSize] = useState('')
                           onClick={(e) => {
                             e.stopPropagation();
                             handleLike(product);
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div
+                      className="h-[50px] w-[50px] rounded-md bg-white border flex justify-center items-center cursor-pointer hover:scale-105"
+                      onClick={() => setIsAdded(!isAdded)}
+                    >
+                      {isAdded ? (
+                        <BsCartCheckFill
+                          className="w-5 h-5 text-red-500 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFromCart(
+                              product,
+                              quantity,
+                              colour,
+                              size
+                            );
+                          }}
+                        />
+                      ) : (
+                        <FiShoppingCart
+                          className="w-5 h-5 text-red-500 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(product, quantity, colour, size);
                           }}
                         />
                       )}

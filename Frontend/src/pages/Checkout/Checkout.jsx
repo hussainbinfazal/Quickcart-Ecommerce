@@ -4,7 +4,11 @@ import { MdKeyboardArrowRight } from "react-icons/md";
 import { RiVisaLine } from "react-icons/ri";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchCartItems } from "../../redux/slices/cartSlice";
+import {
+  clearCart,
+  clearGuestCart,
+  fetchCartItems,
+} from "../../redux/slices/cartSlice";
 import { createOrder, verifyOrder } from "../../redux/slices/orderSlice";
 
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
@@ -70,7 +74,8 @@ const Checkout = () => {
       alert("Phone number must contain digits only");
     }
   };
-  const handlePostalCodeChange = (e) => { //Optional //
+  const handlePostalCodeChange = (e) => {
+    //Optional //
     const value = e.target.value.trim();
 
     // Only update if it's digits or empty
@@ -83,7 +88,6 @@ const Checkout = () => {
 
   const { isAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  
 
   const verifyPayment = async (paymentData) => {
     try {
@@ -96,7 +100,6 @@ const Checkout = () => {
         })
       );
 
-      
       if (!response.payload || response.payload.success !== true) {
         throw new Error("Payment verification failed");
       }
@@ -106,7 +109,6 @@ const Checkout = () => {
       // console.error("Error verifying payment:", error);
       // Convert axios error to a more readable format
       if (error.response) {
-        
         throw new Error(
           error.response.data.message ||
             `Payment verification failed with status ${error.response.status}`
@@ -123,6 +125,10 @@ const Checkout = () => {
     }
   };
   const handleBuyNow = async () => {
+    if(!name || !email || !phone) {
+      toast.error("Please fill all required fields");
+      return;
+    }
     try {
       // Check if user is logged in
       if (!isAuthenticated) {
@@ -133,7 +139,6 @@ const Checkout = () => {
       // Show loading state
       toast.loading("Processing your purchase...");
 
-      
       // Create an order object with course details
       const orderData = {
         shippingAddress: address,
@@ -149,7 +154,7 @@ const Checkout = () => {
       // Call API to create order and process payment
       const response = await dispatch(createOrder(orderData));
       const data = response.payload;
-      
+
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: cart.total * 100, // Amount in paisa
@@ -161,7 +166,7 @@ const Checkout = () => {
           try {
             // Verify payment on backend
             toast.loading("Verifying payment...");
-            
+
             const verification = await verifyPayment(response);
 
             if (verification.success == true) {
@@ -170,6 +175,8 @@ const Checkout = () => {
               );
               // Redirect to course page or dashboard
               toast.dismiss();
+              dispatch(clearCart());
+              dispatch(clearGuestCart());
               navigate("/orders");
             } else {
               alert("Payment verification failed. Please contact support.");
@@ -541,7 +548,8 @@ const Checkout = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="w-full h-[50px]  py-2  border-black mt-2 ">
+                  {/* if You want COD or add Cash in the payment method so you can uncomment this part */}
+                  {/* <div className="w-full h-[50px]  py-2  border-black mt-2 ">
                     <div className="w-full h-full flex justify-start items-center gap-6 ">
                       <span className="w-2/3 h-full flex justify-start items-center gap-2 ">
                         <input
@@ -557,8 +565,8 @@ const Checkout = () => {
                           Card
                         </span>
                         {/* Card logo */}
-                      </span>
-                      {paymentMethod === "card" && (
+                  {/* </span> */}
+                  {/* {paymentMethod === "card" && (
                         <div className="px-4 py-2 w-full">
                           <label className="text-lg font-medium mb-1">
                             Card Details
@@ -567,8 +575,8 @@ const Checkout = () => {
                             <CardElement className="bg-white p-4 rounded-md border border-gray-300" />
                           </div>
                         </div>
-                      )}
-                      <span className="w-1/2 flex justify-end items-center">
+                      )} */}
+                  {/* <span className="w-1/2 flex justify-end items-center">
                         <span className=" h-full flex justify-end items-center gap-4">
                           <RiVisaLine className="text-blue-500 w-[50px] h-[50px]" />
                           <img
@@ -577,10 +585,10 @@ const Checkout = () => {
                             className="w-[50px] h-[30px]"
                           />
                         </span>
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-full h-[50px]  py-2 border-black mt-2 ">
+                      </span> */}
+                  {/* </div> */}
+                  {/* </div> */}
+                  {/* <div className="w-full h-[50px]  py-2 border-black mt-2 ">
                     <div className="w-full h-full flex justify-start items-center gap-6 ">
                       <span className=" w-full md:w-2/3 lg:w-2/3 xl:w-1/2 2xl:w-1/2 h-full flex justify-start items-center gap-2 ">
                         <input
@@ -596,9 +604,9 @@ const Checkout = () => {
                           Cash on delivery
                         </span>
                         {/* Card logo */}
-                      </span>
-                    </div>
-                  </div>
+                  {/* </span> */}
+                  {/* </div> */}
+                  {/* </div>  */}
                 </div>
               </div>
               <div className="w-full h-[100px] flex justify-center items-end">

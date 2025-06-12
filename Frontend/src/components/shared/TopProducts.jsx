@@ -233,7 +233,13 @@ export const ProductCard = ({
               <h4 className="text-lg font-semibold mb-2">{product?.name}</h4>
               <div className="flex items-center mb-2 w-full ">
                 <img
-                  src={product?.productImage}
+                  src={
+                    product?.productImage?.startsWith("http")
+                      ? product.productImage
+                      : `${
+                          import.meta.env.VITE_API_URL
+                        }/uploads/productImages/${product?.productImage}`
+                  }
                   alt=""
                   className="w-full h-50 px-2"
                 />

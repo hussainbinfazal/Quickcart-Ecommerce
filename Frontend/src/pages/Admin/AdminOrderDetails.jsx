@@ -1,7 +1,12 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSingleOrder, deleteOrderByAdmin, updateOrderStatus,updatePaymentStatus } from "../../redux/adminSlices/adminOrdersSlice";
+import {
+  fetchSingleOrder,
+  deleteOrderByAdmin,
+  updateOrderStatus,
+  updatePaymentStatus,
+} from "../../redux/adminSlices/adminOrdersSlice";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 
@@ -18,11 +23,14 @@ const AdminOrderDetails = () => {
     }
   }, [orderId, dispatch]);
 
-  const handlePaymentStatus = async (orderId,paymentStatus) => {
-    const isConfirmed = window.confirm("Are you sure you want to mark this order as paid?");
+  console.log("Order Details:", order);
+  const handlePaymentStatus = async (orderId, paymentStatus) => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to mark this order as paid?"
+    );
     if (isConfirmed) {
       try {
-        await dispatch(updatePaymentStatus({orderId, paymentStatus}));
+        await dispatch(updatePaymentStatus({ orderId, paymentStatus }));
         // toast.success("Order status updated successfully");
         await dispatch(fetchSingleOrder(orderId)); // Refresh the order details after updating
       } catch (error) {
@@ -32,7 +40,9 @@ const AdminOrderDetails = () => {
   };
 
   const handleDelete = async () => {
-    const isConfirmed = window.confirm("Are you sure you want to delete this order?");
+    const isConfirmed = window.confirm(
+      "Are you sure you want to delete this order?"
+    );
     if (isConfirmed) {
       try {
         await dispatch(deleteOrderByAdmin(orderId));
@@ -53,7 +63,9 @@ const AdminOrderDetails = () => {
         <div className="flex space-x-2">
           <button
             className="w-[140px] h-[40px] bg-green-600 text-white rounded-sm cursor-pointer hover:scale-95 transition-all p-1"
-            onClick={() => handlePaymentStatus(orderId, order.isPaid ? "Unpaid" : "Paid"  )}
+            onClick={() =>
+              handlePaymentStatus(orderId, order.isPaid ? "Unpaid" : "Paid")
+            }
           >
             {order.isPaid ? "Mark as Unpaid" : "Mark as Paid"}
           </button>
@@ -70,10 +82,19 @@ const AdminOrderDetails = () => {
 
       <div className="order-summary mt-4 flex flex-col gap-2">
         <h3 className="text-xl font-semibold">Order Summary</h3>
-        <p><strong>Order ID:</strong> {order._id}</p>
-        <p><strong>Order Status:</strong> {order.status}</p>
-        <p><strong>Order Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
-        <p><strong>Total Price:</strong> ₹{order.totalPrice?.toFixed(2)}</p>
+        <p>
+          <strong>Order ID:</strong> {order._id}
+        </p>
+        <p>
+          <strong>Order Status:</strong> {order.status}
+        </p>
+        <p>
+          <strong>Order Date:</strong>{" "}
+          {new Date(order.createdAt).toLocaleDateString()}
+        </p>
+        <p>
+          <strong>Total Price:</strong> ₹{order.totalPrice?.toFixed(2)}
+        </p>
       </div>
 
       {/* Order Items Table */}
@@ -89,9 +110,13 @@ const AdminOrderDetails = () => {
           </thead>
           <tbody>
             {order.orderItems?.map((item) => (
-              <tr key={item._id } className="hover:bg-gray-50">
+              <tr key={item._id} className="hover:bg-gray-50">
                 <td className="px-4 py-2">
-                  <img src={item.image} alt={item.name} className="w-16 h-16 rounded-md " />
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-16 h-16 rounded-md "
+                  />
                 </td>
                 <td className="px-4 py-2 font-medium">{item.name}</td>
                 <td className="px-4 py-2">{item.qty}</td>
@@ -105,26 +130,53 @@ const AdminOrderDetails = () => {
       {/* Shipping Info */}
       <div className="shipping-info mt-4">
         <h3 className="text-xl font-semibold">Shipping Address</h3>
-        <p>{order.shippingAddress?.address}</p>
-        <p>{order.shippingAddress?.city}</p>
-        <p>{order.shippingAddress?.postalCode}</p>
-        <p>{order.shippingAddress?.country}</p>
+        <p>
+          {order.shippingAddress?.address?.street},{" "}
+          {order.shippingAddress?.address?.apartment}
+        </p>
+        <p>
+          {order.shippingAddress?.address?.city},{" "}
+          {order.shippingAddress?.address?.state}
+        </p>
+        <p>
+          {order.shippingAddress?.address?.country} -{" "}
+          {order.shippingAddress?.address?.pincode}
+        </p>
       </div>
 
       {/* Payment Info */}
       <div className="payment-info mt-4">
         <h3 className="text-xl font-semibold">Payment Status</h3>
-        <p><strong>Method:</strong> {order.paymentMethod || 'N/A'}</p>
-        <p><strong>Status:</strong> {order.isPaid ? "Paid" : "Not Paid"}</p>
-        {order.isPaid && <p><strong>Paid At:</strong> {new Date(order.paidAt).toLocaleDateString()}</p>}
-        <p><strong>Email:</strong> {order.paymentResult?.email_address || 'N/A'}</p>
+        <p>
+          <strong>Method:</strong> {Object.values(order.paymentMethod) || "N/A"}
+        </p>
+        <p>
+          <strong>Status:</strong> {order.isPaid ? "Paid" : "Not Paid"}
+        </p>
+        {order.isPaid && (
+          <p>
+            <strong>Paid At:</strong>{" "}
+            {new Date(order.paidAt).toLocaleDateString()}
+          </p>
+        )}
+        <p>
+          <strong>Email:</strong> {order.paymentResult?.email_address || "N/A"}
+        </p>
       </div>
 
       {/* Delivery Info */}
       <div className="delivery-info mt-4">
         <h3 className="text-xl font-semibold">Delivery Status</h3>
-        <p><strong>Status:</strong> {order.isDelivered ? "Delivered" : "Not Delivered"}</p>
-        {order.isDelivered && <p><strong>Delivered At:</strong> {new Date(order.deliveredAt).toLocaleDateString()}</p>}
+        <p>
+          <strong>Status:</strong>{" "}
+          {order.isDelivered ? "Delivered" : "Not Delivered"}
+        </p>
+        {order.isDelivered && (
+          <p>
+            <strong>Delivered At:</strong>{" "}
+            {new Date(order.deliveredAt).toLocaleDateString()}
+          </p>
+        )}
       </div>
     </div>
   );

@@ -204,7 +204,7 @@ const CartPage = () => {
                     alt={item?.name}
                     className="w-[50px] h-[50px] object-cover relative"
                   />
-                  <span className="text-sm">{item?.product?.name}</span>
+                  <span className="text-sm cursor-pointer" onClick={() => navigate(`/product/${item?.product?._id}`)}>{item?.product?.name}</span>
                   <div className="absolute top-2 left-2 w-[20px] h-[5px]  z-40 rounded-full">
                     <RxCross2
                       className="bg-red-500 hover:bg-red-700 hover:scale-110 text-white rounded-full"
