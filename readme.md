@@ -58,7 +58,6 @@ QuickCart is a comprehensive e-commerce solution designed for both customers and
 
 **Payment Integration**
 - Razorpay
-- Stripe
 
 **Other**
 - Socket.IO (for real-time features, if enabled)
