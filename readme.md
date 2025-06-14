@@ -7,7 +7,7 @@ A modern, full-stack e-commerce platform built with the MERN stack, featuring se
 
 ## 🌟 Project Overview
 
-QuickCart is a comprehensive e-commerce solution designed for both customers and administrators. It supports product management, order processing, secure payments (Razorpay & Stripe), coupon management, and advanced analytics dashboards. The platform is built for scalability, security, and a great user experience.
+QuickCart is a comprehensive e-commerce solution designed for both customers and administrators. It supports product management, order processing, secure payment (Razorpay), coupon management, and advanced analytics dashboards. The platform is built for scalability, security, and a great user experience.
 
 ---
 
@@ -20,7 +20,7 @@ QuickCart is a comprehensive e-commerce solution designed for both customers and
 - **Coupon System:** Create, edit, and manage discount coupons.
 
 ### 💳 Payment & Monetization
-- **Secure Payment Integration:** Razorpay and Stripe for seamless, secure payments.
+- **Secure Payment Integration:** Razorpay  for seamless, secure payments.
 - **Cash on Delivery:** Optional payment method for flexibility.
 - **Revenue Analytics:** Admin dashboard with sales and revenue insights.
 
@@ -80,7 +80,7 @@ QuickCart is a comprehensive e-commerce solution designed for both customers and
 - Node.js (v16 or higher)
 - npm or yarn
 - MongoDB instance (local or cloud)
-- Razorpay & Stripe accounts for payment integration
+- Razorpay  account for payment integration
 
 ### Installation
 
@@ -126,7 +126,7 @@ Visit [http://localhost:5173](http://localhost:5173) (or your Vite port) to use 
 ## 🎯 Unique Selling Points
 
 - **Modern MERN Stack:** Built with the latest best practices.
-- **Secure Payments:** Integrated with Razorpay and Stripe.
+- **Secure Payments:** Integrated with Razorpay.
 - **Admin Analytics:** Real-time dashboards for business insights.
 - **Scalable & Maintainable:** Modular code and clean architecture.
 
