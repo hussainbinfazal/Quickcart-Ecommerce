@@ -45,7 +45,7 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/coupons', couponRoutes);
 
 app.use('/api/categories', categoryRoutes);
-app.get("/", requestController);
+// app.get("/", requestController);
 
 if (process.env.NODE_ENV === 'production') {
     // Serve static files from the build folder
@@ -57,7 +57,7 @@ if (process.env.NODE_ENV === 'production') {
     });
 } else {
     // Development route
-    app.get("/", requestController);
+    // app.get("/", requestController);
 }
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
