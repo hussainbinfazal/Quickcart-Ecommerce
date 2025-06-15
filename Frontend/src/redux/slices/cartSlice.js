@@ -36,7 +36,7 @@ export const fetchCartItems = createAsyncThunk('cart/fetchCartItems', async () =
         
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.message);
+        // toast.error(error.response.data.message);
     }
 });
 
@@ -51,7 +51,7 @@ export const addToCart = createAsyncThunk('cart/addToCart', async ({productId,qu
         const response = await axiosInstance.post('/cart/add', { productId, quantity, colour, size }, config);
         return response.data;
     } catch (error) {
-        toast.error(error || error.response.data.message);
+        // toast.error(error || error.response.data.message);
     }
 })
 export const removeFromCart = createAsyncThunk('cart/removeFromCart', async (productId,{rejectWithValue}) => {
@@ -65,7 +65,7 @@ export const removeFromCart = createAsyncThunk('cart/removeFromCart', async (pro
         const response = await axiosInstance.delete(`/cart/remove/${productId}`, config);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.message);
+        // toast.error(error.response.data.message);
     }
 })
 
@@ -80,7 +80,7 @@ export const clearCart = createAsyncThunk('cart/clearCart', async () => {
         const response = await axiosInstance.delete('/cart/clear', config);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.message);
+        // toast.error(error.response.data.message);
     }
 })
 export const updateCartItemQuantity = createAsyncThunk('cart/updateCartItemQuantity', async ({ productId, qty },{rejectWithValue}) => {
@@ -95,7 +95,7 @@ export const updateCartItemQuantity = createAsyncThunk('cart/updateCartItemQuant
         const response = await axiosInstance.put(`/cart/update/${productId}`, { qty }, config);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.message);
+        // toast.error(error.response.data.message);
     }
 })
 export const checkoutCart = createAsyncThunk('cart/checkoutCart', async ({},{rejectWithValue}) => {
@@ -109,7 +109,7 @@ export const checkoutCart = createAsyncThunk('cart/checkoutCart', async ({},{rej
         const response = await axiosInstance.post('/cart/checkout', {}, config);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.message);
+        // toast.error(error.response.data.message);
     }
 })
 // Merge Cart Controller //
@@ -127,12 +127,12 @@ export const mergeGuestCart = createAsyncThunk(
             return rejectWithValue('Guest cart is empty.');
         }
         try {
-            console.log('Merging guest cart:', guestCart);
+            // console.log('Merging guest cart:', guestCart);
             const response = await axiosInstance.post('/cart/merge', { guestCart }, config);
-            toast.success('Guest cart merged successfully!');
+            // toast.success('Guest cart merged successfully!');
             return response.data.cart; 
         } catch (error) {
-            toast.error('Failed to merge guest cart.');
+            // toast.error('Failed to merge guest cart.');
             return rejectWithValue(
                 error.response?.data?.message || 'An error occurred'
             );
@@ -152,7 +152,7 @@ export const updateCouponStatus = createAsyncThunk('cart/updateCouponStatus', as
         const response = await axiosInstance.put('/cart/apply-coupon', { coupon }, config);
         return response.data;
     } catch (error) {
-        toast.error(error.response.data.message);
+        // toast.error(error.response.data.message);
     }
 }
 );
