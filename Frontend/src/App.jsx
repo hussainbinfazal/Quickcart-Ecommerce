@@ -52,12 +52,12 @@ import { checkAuth } from "./redux/slices/userSlice";
 import AuthProvider from "./components/auth/AuthProvider";
 import PublicRoutes from "./components/auth/PublicRoutes";
 import { AdminProtectedRoute } from "./middlewares/adminMiddlewares/adminMiddleWare";
-import AuthWatcher from "./middlewares/auth/authWatcher";
 import Search from "./pages/searchPage/Search";
 import AllProducts from "./pages/product/AllProducts";
 import ScrollLoader from "./components/layout/ScrollLoader";
 
 import { ClerkProvider } from "@clerk/clerk-react";
+import AuthWatcher from "./middlewares/auth/AuthWatcher.jsx";
 function App() {
   const [count, setCount] = useState(0);
   const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_KEY);
