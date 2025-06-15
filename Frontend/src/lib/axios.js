@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const axiosInstance = axios.create({
-  baseURL:process.env.AXIOS_URL ? process.env.AXIOS_URL : 'http://localhost:5000/api',
+  baseURL:import.meta.env.VITE_AXIOS_URL ? import.meta.env.VITE_AXIOS_URL  : 'http://localhost:5000/api',
   withCredentials: true,
 });
 
