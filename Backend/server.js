@@ -47,6 +47,18 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/categories', categoryRoutes);
 app.get("/", requestController);
 
+if (process.env.NODE_ENV === 'production') {
+    // Serve static files from the build folder
+    app.use(express.static(path.join(__dirname, '../dist')));
+    
+    // Handle React routing - send all non-API requests to React app
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+    });
+} else {
+    // Development route
+    app.get("/", requestController);
+}
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
