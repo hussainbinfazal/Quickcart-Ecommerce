@@ -14,7 +14,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'quickcart-ecommerce-production.up.railway.app',
+        target: process.env.VITE_API_URL || 'https://quickcart-ecommerce-lodg.onrender.com',
         changeOrigin: true,
         secure: false,
       },
