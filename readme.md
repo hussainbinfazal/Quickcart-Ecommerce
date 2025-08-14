@@ -1,7 +1,7 @@
 
 # 🛒 QuickCart E-commerce Platform
 
-A modern, full-stack e-commerce platform built with the MERN stack, featuring secure payments, real-time order tracking, admin analytics with AI, and a seamless shopping experience.
+A Modern, full-stack e-commerce platform built with the MERN stack, featuring secure payments, real-time order tracking, admin analytics with AI, and a seamless shopping experience.
 
 ---
 
